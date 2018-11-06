@@ -55,7 +55,7 @@ int ret=0;
 	}
 
 	// Step back to the start of the function
-	ptr -= 32;
+	ptr -= 17;
 
 	// Ptr should now point to the start of "auth_password()", so now we can add our hook
 	// We first need to update the protection of memory so we can write to this page

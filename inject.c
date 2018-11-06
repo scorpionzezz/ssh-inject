@@ -173,7 +173,7 @@ void *dlopenAddr = NULL;
 void *libdlAddr = NULL;
 
 	// First we need to load libdl.so, to allow retrieval of the dlopen() symbol
-	libdlAddr = dlopen("libdl-2.19.so", RTLD_LAZY);
+	libdlAddr = dlopen("libdl-2.23.so", RTLD_LAZY);
 	if (libdlAddr == NULL) {
 		printf("[!] Error opening libdl.so\n");
 		exit(1);
@@ -189,12 +189,12 @@ void *libdlAddr = NULL;
 	printf("[*] dlopen() found at address %p\n", dlopenAddr);
 
 	// Find the base address of libdl in our victim process
-	remoteLib = findLibrary("libdl-2.19", atoi(argv[1]));
+	remoteLib = findLibrary("libdl-2.23", atoi(argv[1]));
 	printf("[*] libdl located in PID %d at address %p\n", atoi(argv[1]), (void*)remoteLib);
 
 	// Find the base address of libdl.so in our own process for comparison
 	// NOT NEEDED !!! We can use libdlAddr, but check this
-	localLib = findLibrary("libdl-2.19", -1);
+	localLib = findLibrary("libdl-2.23", -1);
 
 	// Due to ASLR, we need to calculate the address in the target process 
 	dlopenAddr = remoteLib + (dlopenAddr - localLib);
